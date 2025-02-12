@@ -50,9 +50,27 @@ def upload():
         return f"Error: No se encontró el archivo {e.filename}.", 400
     except Exception as e:
         return f"Error al procesar la carpeta: {e}", 500
+    finally:
+        # Limpiar la carpeta de uploads después de procesar
+        clean_upload_folder(UPLOAD_FOLDER)
 
     # Enviar el archivo generado para descargar
     return send_file(output_md, as_attachment=True)
+
+def clean_upload_folder(folder_path):
+    """
+    Elimina todos los archivos y subdirectorios dentro de la carpeta especificada.
+    """
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)  # Eliminar archivos o enlaces simbólicos
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)  # Eliminar directorios y su contenido
+            print(f"Eliminado: {file_path}")  # Depuración
+        except Exception as e:
+            print(f"Error al eliminar {file_path}: {e}")  # Depuración
 
 if __name__ == '__main__':
     app.run(debug=True)

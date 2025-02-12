@@ -1,0 +1,3 @@
+- Hacerla webapp
+- Solo sacar los comentarios
+- Borrar la carpeta una vez generada la documentación 
