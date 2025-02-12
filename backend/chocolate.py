@@ -44,7 +44,7 @@ def listar_estructura_markdown(ruta, archivo_salida):
 def extraer_docstring(file_path):
     """
     Extrae el docstring o comentarios iniciales de un archivo según su tipo,
-    excluyendo archivos en directorios ocultos.
+    excluyendo archivos en directorios ocultos y archivos binarios.
 
     Args:
         file_path (str): Ruta completa del archivo.
@@ -55,6 +55,11 @@ def extraer_docstring(file_path):
     _, ext = os.path.splitext(file_path)
     ext = ext.lower()
     doc = ""
+
+    # Ignorar archivos binarios
+    binary_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.db', '.bin', '.exe']
+    if ext in binary_extensions:
+        return doc
 
     partes = file_path.split(os.sep)
     if any(part.startswith('.') for part in partes):
@@ -81,12 +86,12 @@ def extraer_docstring(file_path):
                 if comments:
                     doc = "\n".join(comments)
         elif ext in ['.js', '.php', '.css']:
-            if ext == '.php':
-                content = re.sub(r'<\?php\s*', '', content, flags=re.IGNORECASE)
+            # Buscar comentarios multilínea (/* ... */)
             multiline_match = re.match(r'^\s*/\*([\s\S]*?)\*/', content, re.DOTALL)
             if multiline_match:
                 doc = multiline_match.group(1).strip()
             else:
+                # Buscar comentarios de una línea (//)
                 comments = []
                 for line in content.splitlines():
                     line = line.strip()
@@ -110,7 +115,7 @@ def extraer_docstring(file_path):
 def agregar_docstrings_markdown(ruta, archivo_salida):
     """
     Agrega docstrings/comentarios de los archivos al documento Markdown,
-    excluyendo directorios ocultos.
+    excluyendo directorios ocultos y archivos binarios.
 
     Args:
         ruta (str): Ruta de la carpeta a analizar.
@@ -125,6 +130,14 @@ def agregar_docstrings_markdown(ruta, archivo_salida):
                 if file.startswith('.'):
                     continue
                 file_path = os.path.join(root, file)
+                _, ext = os.path.splitext(file)
+                ext = ext.lower().lstrip('.')
+
+                # Ignorar archivos binarios
+                binary_extensions = ['png', 'jpg', 'jpeg', 'gif', 'db', 'bin', 'exe']
+                if ext in binary_extensions:
+                    continue
+
                 doc = extraer_docstring(file_path)
                 if doc:
                     relative_path = os.path.relpath(file_path, ruta)
@@ -134,7 +147,7 @@ def agregar_docstrings_markdown(ruta, archivo_salida):
 def agregar_codigo_markdown(ruta, archivo_salida):
     """
     Agrega el código de cada archivo al documento Markdown dentro de bloques de código,
-    excluyendo directorios ocultos.
+    excluyendo directorios ocultos y archivos binarios.
 
     Args:
         ruta (str): Ruta de la carpeta a analizar.
@@ -151,6 +164,11 @@ def agregar_codigo_markdown(ruta, archivo_salida):
                 file_path = os.path.join(root, file)
                 _, ext = os.path.splitext(file)
                 ext = ext.lower().lstrip('.')
+
+                # Ignorar archivos binarios
+                binary_extensions = ['png', 'jpg', 'jpeg', 'gif', 'db', 'bin', 'exe']
+                if ext in binary_extensions:
+                    continue
 
                 lang_map = {
                     'py': 'python',
