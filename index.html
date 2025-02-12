@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generador de Markdown</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Generador de Markdown</h1>
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="folder">Sube una carpeta (o un zip):</label>
+        <input
+          type="file"
+          name="folder"
+          id="folder"
+          webkitdirectory
+          directory
+          multiple
+        />
+        <button type="submit">Generar Markdown</button>
+      </form>
+    </div>
+  </body>
+</html>
