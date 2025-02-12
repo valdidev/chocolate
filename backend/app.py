@@ -8,11 +8,9 @@ app = Flask(__name__, static_folder='../', template_folder='../')
 UPLOAD_FOLDER = 'uploads'
 OUTPUT_FOLDER = 'output'
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-if not os.path.exists(OUTPUT_FOLDER):
-    os.makedirs(OUTPUT_FOLDER)
+# Crear las carpetas si no existen
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -23,27 +21,35 @@ def upload():
     if 'folder' not in request.files:
         return "No se ha subido ninguna carpeta.", 400
 
-    folder = request.files.getlist('folder')[0]
-    if folder.filename == '':
+    # Obtener la lista de archivos subidos
+    files = request.files.getlist('folder')
+    if not files or all(file.filename == '' for file in files):
         return "No se ha seleccionado ningún archivo.", 400
 
-    # Guardar la carpeta subida
-    folder_path = os.path.join(UPLOAD_FOLDER, folder.filename)
-    folder.save(folder_path)
+    # Crear una carpeta temporal para los archivos subidos
+    temp_folder = os.path.join(UPLOAD_FOLDER, 'temp')
+    os.makedirs(temp_folder, exist_ok=True)
 
-    # Extraer la carpeta si es un zip
-    if folder.filename.endswith('.zip'):
-        shutil.unpack_archive(folder_path, UPLOAD_FOLDER)
-        folder_name = folder.filename[:-4]  # Eliminar la extensión .zip
-    else:
-        folder_name = folder.filename
+    # Guardar los archivos subidos manteniendo la estructura de directorios
+    for file in files:
+        # Obtener la ruta relativa del archivo dentro de la carpeta
+        file_path = os.path.join(temp_folder, file.filename)
+        
+        # Crear directorios necesarios
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
+        # Guardar el archivo
+        file.save(file_path)
+        print(f"Archivo guardado: {file_path}")  # Depuración
 
-    # Ruta completa de la carpeta
-    full_folder_path = os.path.join(UPLOAD_FOLDER, folder_name)
-
-    # Generar el archivo Markdown
+    # Procesar los archivos subidos
     output_md = os.path.join(OUTPUT_FOLDER, 'output.md')
-    procesar(full_folder_path, output_md)
+    try:
+        procesar(temp_folder, output_md)
+    except FileNotFoundError as e:
+        return f"Error: No se encontró el archivo {e.filename}.", 400
+    except Exception as e:
+        return f"Error al procesar la carpeta: {e}", 500
 
     # Enviar el archivo generado para descargar
     return send_file(output_md, as_attachment=True)
