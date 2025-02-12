@@ -144,59 +144,9 @@ def agregar_docstrings_markdown(ruta, archivo_salida):
                     f.write(f"## {relative_path}\n\n")
                     f.write(f"{doc}\n\n")
 
-def agregar_codigo_markdown(ruta, archivo_salida):
-    """
-    Agrega el código de cada archivo al documento Markdown dentro de bloques de código,
-    excluyendo directorios ocultos y archivos binarios.
-
-    Args:
-        ruta (str): Ruta de la carpeta a analizar.
-        archivo_salida (str): Nombre del archivo Markdown de salida.
-    """
-    with open(archivo_salida, 'a', encoding='utf-8') as f:
-        f.write("\n# Código de Archivos\n\n")
-        for root, dirs, files in os.walk(ruta):
-            filtrar_directorios(dirs)
-
-            for file in files:
-                if file.startswith('.'):
-                    continue
-                file_path = os.path.join(root, file)
-                _, ext = os.path.splitext(file)
-                ext = ext.lower().lstrip('.')
-
-                # Ignorar archivos binarios
-                binary_extensions = ['png', 'jpg', 'jpeg', 'gif', 'db', 'bin', 'exe']
-                if ext in binary_extensions:
-                    continue
-
-                lang_map = {
-                    'py': 'python',
-                    'js': 'javascript',
-                    'php': 'php',
-                    'css': 'css',
-                    'html': 'html',
-                    'htm': 'html',
-                }
-
-                lang = lang_map.get(ext, '')
-
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as code_file:
-                        code_content = code_file.read()
-
-                    relative_path = os.path.relpath(file_path, ruta)
-                    f.write(f"## {relative_path}\n\n")
-                    f.write(f"```{lang}\n")
-                    f.write(f"{code_content}\n")
-                    f.write("```\n\n")
-
-                except Exception as e:
-                    print(f"Error al leer el archivo {file_path}: {e}")
-
 def procesar(carpeta, archivo_md):
     """
-    Ejecuta las tres fases del procesamiento.
+    Ejecuta las dos fases del procesamiento.
 
     Args:
         carpeta (str): Ruta de la carpeta a analizar.
@@ -208,9 +158,6 @@ def procesar(carpeta, archivo_md):
 
         agregar_docstrings_markdown(carpeta, archivo_md)
         print("Docstrings/comentarios agregados.")
-
-        agregar_codigo_markdown(carpeta, archivo_md)
-        print("Código de archivos agregado.")
 
         print(f"Proceso completado. Archivo generado: {archivo_md}")
     except Exception as e:
